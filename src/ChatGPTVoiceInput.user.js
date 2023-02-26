@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         ChatGPT: 語音輸入與語音合成功能 (支援中/英/日/韓語言)
+// @name         ChatGPT: 语音輸入與语音合成功能 (支援中/英/日/韓語言)
 // @version      2.4.1
-// @description  讓你可以透過語音輸入要問 ChatGPT 的問題並支援語音合成功能 (支援中文、英文、日文、韓文)
+// @description  讓你可以透過语音輸入要問 ChatGPT 的問題並支援语音合成功能 (支援中文、英文、日文、韩文)
 // @license      MIT
 // @homepage     https://blog.miniasp.com/
 // @homepageURL  https://blog.miniasp.com/
@@ -18,45 +18,45 @@
 /*
     States
 
-    1. 語音識別 Not Started
-    2. 語音識別 Started
-    3. 語音合成 Not Started (speaking=false, pending=false)
-    4. 語音合成 Progressing (speaking=true, pending=true)
-    5. 語音合成 Pending (speaking=true/false, pending=true)
+    1. 语音識別 Not Started
+    2. 语音識別 Started
+    3. 语音合成 Not Started (speaking=false, pending=false)
+    4. 语音合成 Progressing (speaking=true, pending=true)
+    5. 语音合成 Pending (speaking=true/false, pending=true)
 
     Use Case
 
-    1. 語音識別 speechRecognition 只要人按下麥克風按鈕或按下 alt+s 才會開始
-    2. 語音識別 speechRecognition 只要「語音合成」就要提前停止
-    3. 語音識別 speechRecognition 只要「按下 alt+s 快速鍵」就要提前停止
-    4. 語音識別 speechRecognition 只要「按下麥克風按鈕」就要提前停止
+    1. 语音識別 speechRecognition 只要人按下麥克風按鈕或按下 alt+s 才會開始
+    2. 语音識別 speechRecognition 只要「语音合成」就要提前停止
+    3. 语音識別 speechRecognition 只要「按下 alt+s 快速鍵」就要提前停止
+    4. 语音識別 speechRecognition 只要「按下麥克風按鈕」就要提前停止
 
-    5. 語音合成 speechSynthesis 只要人按下喇叭按鈕或按下 alt+m 才會開始
-    6. 語音合成 speechSynthesis 只要「語音識別」開始就要提前停止 ( speechSynthesis.cancel() )
-    7. 語音合成 speechSynthesis 只要「按下 alt+m 快速鍵」就要提前停止
-    8. 語音合成 speechSynthesis 只要「按下喇叭按鈕」就要提前停止
+    5. 语音合成 speechSynthesis 只要人按下喇叭按鈕或按下 alt+m 才會開始
+    6. 语音合成 speechSynthesis 只要「语音識別」開始就要提前停止 ( speechSynthesis.cancel() )
+    7. 语音合成 speechSynthesis 只要「按下 alt+m 快速鍵」就要提前停止
+    8. 语音合成 speechSynthesis 只要「按下喇叭按鈕」就要提前停止
 
-    9. 語音識別 speechRecognition 跟 語音合成 speechSynthesis 不能同時進行
-    10. 語音識別 speechRecognition 跟 語音合成 speechSynthesis 預設都是關閉的
+    9. 语音識別 speechRecognition 跟 语音合成 speechSynthesis 不能同時進行
+    10. 语音識別 speechRecognition 跟 语音合成 speechSynthesis 預設都是关闭的
 
     Summary
 
     整個功能只有 4 個主要事件：
 
-    1. 語音識別開始
-    2. 語音識別停止
-    3. 語音合成開始
-    4. 語音合成停止
+    1. 语音識別開始
+    2. 语音識別停止
+    3. 语音合成開始
+    4. 语音合成停止
 
-    語音識別
+    语音識別
     speechRecognition
 
         speechRecognition.lang
-        speechRecognition.start(); // 開始語音識別
-        speechRecognition.stop();  // 停止語音識別
-        speechRecognition.abort(); // 中斷語音識別
+        speechRecognition.start(); // 開始语音識別
+        speechRecognition.stop();  // 停止语音識別
+        speechRecognition.abort(); // 中斷语音識別
 
-    語音合成
+    语音合成
     speechSynthesis
 
         speechSynthesis.speaking // 是否正在說話
@@ -64,7 +64,7 @@
         speechSynthesis.pending // 還沒說完的
         speechSynthesis.speak();
 
-        const voice = speechSynthesis.getVoices().filter(x => x.lang === 'zh-TW').pop(); // 取得多個中文語音的最後一個
+        const voice = speechSynthesis.getVoices().filter(x => x.lang === 'zh-TW').pop(); // 取得多個中文语音的最後一個
 
     盤點鍵盤事件 - 取得 document 的所有 keydown 事件 (RxJS)
     const keydown$ = fromEvent(document, 'keydown');
@@ -148,13 +148,13 @@
     // 主要的文字輸入框
     let textAreaElement = undefined;
 
-    // 用來記憶文字輸入框的語音輸入過程中的暫存文字
+    // 用來記憶文字輸入框的语音輸入過程中的暫存文字
     let Parts = [];
 
     // 主要的送出按鈕
     let submitButtonElement = undefined;
 
-    // 麥克風輸入按鈕 (預設關閉)
+    // 麥克風輸入按鈕 (預設关闭)
     const svgMicOn = '<svg stroke="currentColor" fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 16 16" version="1.1"><path d="M 8 8.949219 C 7.523438 8.949219 7.121094 8.777344 6.800781 8.433594 C 6.476562 8.089844 6.316406 7.671875 6.316406 7.183594 L 6.316406 3 C 6.316406 2.535156 6.480469 2.140625 6.808594 1.816406 C 7.136719 1.496094 7.535156 1.332031 8 1.332031 C 8.464844 1.332031 8.863281 1.496094 9.191406 1.816406 C 9.519531 2.140625 9.683594 2.535156 9.683594 3 L 9.683594 7.183594 C 9.683594 7.671875 9.523438 8.089844 9.199219 8.433594 C 8.878906 8.777344 8.476562 8.949219 8 8.949219 Z M 8 5.148438 Z M 7.5 14 L 7.5 11.734375 C 6.320312 11.609375 5.332031 11.117188 4.535156 10.25 C 3.734375 9.382812 3.332031 8.359375 3.332031 7.183594 L 4.332031 7.183594 C 4.332031 8.195312 4.691406 9.042969 5.410156 9.734375 C 6.125 10.421875 6.988281 10.765625 8 10.765625 C 9.011719 10.765625 9.875 10.421875 10.589844 9.734375 C 11.308594 9.042969 11.667969 8.195312 11.667969 7.183594 L 12.667969 7.183594 C 12.667969 8.359375 12.265625 9.382812 11.464844 10.25 C 10.667969 11.117188 9.679688 11.609375 8.5 11.734375 L 8.5 14 Z M 8 7.949219 C 8.199219 7.949219 8.363281 7.875 8.492188 7.726562 C 8.621094 7.574219 8.683594 7.394531 8.683594 7.183594 L 8.683594 3 C 8.683594 2.8125 8.617188 2.652344 8.484375 2.523438 C 8.351562 2.398438 8.1875 2.332031 8 2.332031 C 7.8125 2.332031 7.648438 2.398438 7.515625 2.523438 C 7.382812 2.652344 7.316406 2.8125 7.316406 3 L 7.316406 7.183594 C 7.316406 7.394531 7.378906 7.574219 7.507812 7.726562 C 7.636719 7.875 7.800781 7.949219 8 7.949219 Z M 8 7.949219 "></path></svg>';
     const svgMicOff = '<svg stroke="currentColor" fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 16 16" version="1.1"><path d="M 11.433594 9.984375 L 10.714844 9.265625 C 10.949219 8.976562 11.121094 8.652344 11.234375 8.292969 C 11.34375 7.929688 11.398438 7.5625 11.398438 7.183594 L 12.398438 7.183594 C 12.398438 7.695312 12.316406 8.1875 12.148438 8.667969 C 11.984375 9.144531 11.746094 9.582031 11.433594 9.984375 Z M 7.683594 6.234375 Z M 9.300781 7.851562 L 8.417969 6.984375 L 8.417969 3.015625 C 8.417969 2.828125 8.351562 2.667969 8.214844 2.535156 C 8.082031 2.398438 7.921875 2.332031 7.734375 2.332031 C 7.542969 2.332031 7.382812 2.398438 7.25 2.535156 C 7.117188 2.667969 7.050781 2.828125 7.050781 3.015625 L 7.050781 5.601562 L 6.050781 4.601562 L 6.050781 3.015625 C 6.050781 2.550781 6.214844 2.152344 6.542969 1.824219 C 6.871094 1.496094 7.265625 1.332031 7.734375 1.332031 C 8.199219 1.332031 8.597656 1.496094 8.925781 1.824219 C 9.253906 2.152344 9.417969 2.550781 9.417969 3.015625 L 9.417969 7.183594 C 9.417969 7.273438 9.410156 7.382812 9.390625 7.515625 C 9.375 7.648438 9.34375 7.761719 9.300781 7.851562 Z M 7.234375 14 L 7.234375 11.734375 C 6.054688 11.609375 5.066406 11.117188 4.265625 10.25 C 3.464844 9.382812 3.066406 8.359375 3.066406 7.183594 L 4.066406 7.183594 C 4.066406 8.195312 4.425781 9.042969 5.140625 9.734375 C 5.859375 10.421875 6.722656 10.765625 7.734375 10.765625 C 8.15625 10.765625 8.5625 10.695312 8.949219 10.558594 C 9.339844 10.417969 9.695312 10.226562 10.015625 9.984375 L 10.734375 10.699219 C 10.390625 10.988281 10.003906 11.21875 9.582031 11.390625 C 9.160156 11.5625 8.710938 11.679688 8.234375 11.734375 L 8.234375 14 Z M 13.851562 15.082031 L 0.601562 1.832031 L 1.234375 1.199219 L 14.484375 14.449219 Z M 13.851562 15.082031 "></path></svg>';
     const microphoneButtonElement = document.createElement('button');
@@ -162,7 +162,7 @@
     microphoneButtonElement.type = 'button';
     microphoneButtonElement.classList = 'absolute p-1 rounded-md text-gray-500 bottom-1.5 right-1 md:bottom-2.5 md:right-2 hover:bg-gray-100 dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent';
     microphoneButtonElement.style.right = '2.5rem';
-    microphoneButtonElement.title = `開啟語音辨識功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
+    microphoneButtonElement.title = `开启语音辨识功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
     microphoneButtonElement.innerHTML = svgMicOff;
     microphoneButtonElement.addEventListener('click', () => {
         if (isSpeechRecognitionEnabled()) {
@@ -174,7 +174,7 @@
 
     microphoneButtonElement.changeLanguage = function (language) {
         if (language) {
-            console.log('切換語言到', language);
+            console.log('切换語言到', language);
             speechRecognitionStop$.next();
             speechRecognition.lang = language;
             setTimeout(() => {
@@ -226,7 +226,7 @@
 
         const option1 = document.createElement('option');
         option1.value = '';
-        option1.text = '請選擇語音辨識的慣用語言';
+        option1.text = '请选择语音辨识的惯用语言';
         selectElement.add(option1);
 
         // 可設定值清單 ▶ https://www.google.com/intl/en/chrome/demos/speech.html
@@ -267,7 +267,7 @@
     });
 
 
-    // 語音合成輸出按鈕 (預設關閉)
+    // 语音合成輸出按鈕 (預設关闭)
     const svgSpeakerOn = '<svg stroke="currentColor" fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 16 16" version="1.1"><path d="M 9.332031 13.816406 L 9.332031 12.785156 C 10.410156 12.472656 11.292969 11.875 11.976562 10.992188 C 12.660156 10.109375 13 9.105469 13 7.984375 C 13 6.859375 12.660156 5.855469 11.984375 4.964844 C 11.304688 4.078125 10.421875 3.484375 9.332031 3.183594 L 9.332031 2.148438 C 10.710938 2.460938 11.832031 3.160156 12.699219 4.242188 C 13.566406 5.324219 14 6.570312 14 7.984375 C 14 9.394531 13.566406 10.640625 12.699219 11.726562 C 11.832031 12.808594 10.710938 13.503906 9.332031 13.816406 Z M 2 10 L 2 6 L 4.667969 6 L 8 2.667969 L 8 13.332031 L 4.667969 10 Z M 9 10.800781 L 9 5.183594 C 9.609375 5.371094 10.097656 5.726562 10.457031 6.25 C 10.820312 6.773438 11 7.355469 11 8 C 11 8.632812 10.816406 9.210938 10.449219 9.734375 C 10.082031 10.253906 9.601562 10.609375 9 10.800781 Z M 7 5.199219 L 5.117188 7 L 3 7 L 3 9 L 5.117188 9 L 7 10.816406 Z M 5.433594 8 Z M 5.433594 8 "></path></svg>';
     const svgSpeakerOff = '<svg stroke="currentColor" fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 16 16" version="1.1"><path d="M 13.550781 15.066406 L 11.351562 12.867188 C 11.039062 13.089844 10.703125 13.28125 10.339844 13.441406 C 9.980469 13.601562 9.605469 13.726562 9.214844 13.816406 L 9.214844 12.785156 C 9.472656 12.707031 9.71875 12.621094 9.957031 12.523438 C 10.195312 12.429688 10.421875 12.304688 10.632812 12.148438 L 7.882812 9.382812 L 7.882812 13.332031 L 4.550781 10 L 1.882812 10 L 1.882812 6 L 4.484375 6 L 0.816406 2.332031 L 1.535156 1.617188 L 14.265625 14.332031 Z M 12.949219 11.199219 L 12.234375 10.484375 C 12.457031 10.105469 12.621094 9.707031 12.726562 9.285156 C 12.832031 8.859375 12.882812 8.429688 12.882812 7.984375 C 12.882812 6.839844 12.550781 5.8125 11.882812 4.910156 C 11.214844 4.003906 10.328125 3.429688 9.214844 3.183594 L 9.214844 2.148438 C 10.59375 2.460938 11.714844 3.160156 12.582031 4.242188 C 13.449219 5.324219 13.882812 6.570312 13.882812 7.984375 C 13.882812 8.550781 13.804688 9.105469 13.648438 9.648438 C 13.496094 10.195312 13.261719 10.710938 12.949219 11.199219 Z M 10.714844 8.964844 L 9.214844 7.464844 L 9.214844 5.300781 C 9.738281 5.542969 10.148438 5.910156 10.441406 6.398438 C 10.734375 6.890625 10.882812 7.421875 10.882812 8 C 10.882812 8.167969 10.871094 8.332031 10.839844 8.492188 C 10.8125 8.652344 10.773438 8.8125 10.714844 8.964844 Z M 7.882812 6.132812 L 6.148438 4.398438 L 7.882812 2.667969 Z M 6.882812 10.898438 L 6.882812 8.398438 L 5.484375 7 L 2.882812 7 L 2.882812 9 L 4.984375 9 Z M 6.183594 7.699219 Z M 6.183594 7.699219 "></path></svg>';
     const speakerButtonElement = document.createElement('button');
@@ -276,7 +276,7 @@
     speakerButtonElement.classList = 'absolute p-1 rounded-md text-gray-500 bottom-1.5 right-1 md:bottom-2.5 md:right-2 hover:bg-gray-100 dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent';
     speakerButtonElement.style.right = '4.5rem';
     speakerButtonElement.innerHTML = svgSpeakerOff;
-    speakerButtonElement.title = `開啟語音合成功能 (${isMac() ? 'command+option+m' : 'alt+m'})`;
+    speakerButtonElement.title = `开启语音合成功能 (${isMac() ? 'command+option+m' : 'alt+m'})`;
     speakerButtonElement.addEventListener('click', () => {
         const enabled = isSpeechSynthesisEnabled();
         if (enabled) {
@@ -321,14 +321,14 @@
         const selectElement = document.createElement('select');
         selectElement.addEventListener('change', function (event) {
             currentVoice = speechSynthesis.getVoices().filter(x => x.voiceURI === this.value).pop();
-            console.log('你目前選中的語音合成聲音是: ', currentVoice);
+            console.log('你目前選中的语音合成聲音是: ', currentVoice);
             speechSynthesisStart$.next();
             contextMenu.close()
         });
 
         const option1 = document.createElement('option');
         option1.value = '';
-        option1.text = '請選擇語音合成的慣用聲音';
+        option1.text = '请选择语音合成的惯用声音';
         selectElement.add(option1);
 
         speechSynthesis.getVoices().forEach(function (item) {
@@ -355,13 +355,13 @@
         });
     });
 
-    // 判斷是否要開始執行語音合成
+    // 判斷是否要開始執行语音合成
     function isSpeechSynthesisEnabled() {
         // TODO: 這個寫法有點不太可靠，因為 Browser 會正規化 SVG 的 HTML 結構，有可能會長不一樣！
         return (speakerButtonElement.innerHTML === svgSpeakerOn);
     };
 
-    // 判斷是否要開始執行語音辨識
+    // 判斷是否要開始執行语音辨识
     function isSpeechRecognitionEnabled() {
         // TODO: 這個寫法有點不太可靠，因為 Browser 會正規化 SVG 的 HTML 結構，有可能會長不一樣！
         return (microphoneButtonElement.innerHTML === svgMicOn);
@@ -376,21 +376,21 @@
     // const SpeechGrammarList = window.SpeechGrammarList || webkitSpeechGrammarList;
     // const SpeechRecognitionEvent = window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
 
-    // 建立語音辨識物件
+    // 建立语音辨识物件
     const speechRecognition = new SpeechRecognition();
     speechRecognition.continuous = true;
     speechRecognition.interimResults = true;
     speechRecognition.lang = defaultLang; // 可設定值清單 ▶ https://stackoverflow.com/a/68742566/910074
 
     speechRecognition.onstart = (event) => {
-        (logLevel >= 1) && console.log('開始進行 SpeechRecognition 語音辨識');
+        (logLevel >= 1) && console.log('開始進行 SpeechRecognition 语音辨识');
     };
     speechRecognition.onerror = (event) => {
-        (logLevel >= 1) && console.log('SpeechRecognition 語音辨識錯誤(error)或中斷(abort)!', event);
+        (logLevel >= 1) && console.log('SpeechRecognition 语音辨识錯誤(error)或中斷(abort)!', event);
     }
     speechRecognition.onend = (event) => {
-        // 如果目前瀏覽器頁籤抓不到麥克風資源 (例如有兩個 Tab 都想要麥克風)，那麼就會一直不斷的停止語音辨識！
-        (logLevel >= 1) && console.log('停止 SpeechRecognition 語音辨識!', event);
+        // 如果目前瀏覽器頁籤抓不到麥克風資源 (例如有兩個 Tab 都想要麥克風)，那麼就會一直不斷的停止语音辨识！
+        (logLevel >= 1) && console.log('停止 SpeechRecognition 语音辨识!', event);
         speechRecognitionStop$.next();
     };
     speechRecognition.onresult = async (event) => {
@@ -398,14 +398,14 @@
     };
 
     async function processSpeechRecognitionResult(event) {
-        (logLevel >= 2) && console.log('語音識別事件: ', event);
+        (logLevel >= 2) && console.log('语音識別事件: ', event);
 
         let results = event.results[event.resultIndex];
 
         (logLevel >= 2) && console.log('results.length', results.length);
         let transcript = results[0].transcript; // 理論上只會有一個結果
 
-        (logLevel >= 1) && console.log('語音輸入: ' + transcript, 'isFinal: ', results.isFinal);
+        (logLevel >= 1) && console.log('语音輸入: ' + transcript, 'isFinal: ', results.isFinal);
 
         if (Parts.length == 0) {
             Parts[0] = transcript;
@@ -453,7 +453,7 @@
                     Parts.pop();
                     break;
 
-                case '換行':
+                case '换行':
                     Parts[Parts.length - 1] = '\r\n';
                     break;
 
@@ -461,33 +461,33 @@
                     reset();
                     break;
 
-                case '切換至中文模式':
-                    (logLevel >= 2) && console.log('切換至中文模式');
+                case '切换至中文模式':
+                    (logLevel >= 2) && console.log('切换至中文模式');
                     microphoneButtonElement.changeLanguage('cmn-Hans-CN');
                     Parts[Parts.length - 1] = '';
                     break;
 
-                case '切換至英文模式':
-                    (logLevel >= 2) && console.log('切換至英文模式');
+                case '切换至英文模式':
+                    (logLevel >= 2) && console.log('切换至英文模式');
                     microphoneButtonElement.changeLanguage('en-US');
                     Parts[Parts.length - 1] = '';
                     break;
 
-                case '切換至日文模式':
-                case '切換至日文':
-                    (logLevel >= 2) && console.log('切換至日文模式');
+                case '切换至日文模式':
+                case '切换至日文':
+                    (logLevel >= 2) && console.log('切换至日文模式');
                     microphoneButtonElement.changeLanguage('ja-JP');
                     Parts[Parts.length - 1] = '';
                     break;
 
-                case '切換至韓文模式':
-                    (logLevel >= 2) && console.log('切換至韓文模式');
+                case '切换至韩文模式':
+                    (logLevel >= 2) && console.log('切换至韩文模式');
                     microphoneButtonElement.changeLanguage('ko-KR');
                     Parts[Parts.length - 1] = '';
                     break;
 
-                case '關閉語音辨識':
-                    (logLevel >= 2) && console.log('關閉語音辨識');
+                case '关闭语音辨识':
+                    (logLevel >= 2) && console.log('关闭语音辨识');
                     speechRecognitionStop$.next();
                     break;
 
@@ -527,17 +527,17 @@
 
     // 整支程式主要只有 4 個主要事件：
 
-    // 1. 語音識別開始 speechRecognitionStart$
+    // 1. 语音識別開始 speechRecognitionStart$
     const speechRecognitionStart$ = new Subject();
     speechRecognitionStart$.subscribe(() => {
         (logLevel >= 1) && console.log('speechRecognitionStart$');
 
-        // 語音識別 speechRecognition 跟 語音合成 speechSynthesis 不能同時進行
+        // 语音識別 speechRecognition 跟 语音合成 speechSynthesis 不能同時進行
         speechSynthesisStop$.next();
 
         // 更新 UI 狀態
         microphoneButtonElement.innerHTML = svgMicOn;
-        microphoneButtonElement.title = `關閉語音辨識功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
+        microphoneButtonElement.title = `关闭语音辨识功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
 
         if (textAreaElement.value) {
             Parts = [textAreaElement.value, ''];
@@ -545,20 +545,20 @@
             Parts = [];
         }
 
-        // 啟動語音辨識
+        // 啟動语音辨识
         speechRecognition.start();
         (logLevel >= 1) && console.log('speechRecognitionStart$ Started', Parts, textAreaElement.value);
 
     });
 
-    // 2. 語音識別停止 speechRecognitionStop$
+    // 2. 语音識別停止 speechRecognitionStop$
     const speechRecognitionStop$ = new Subject();
     speechRecognitionStop$.subscribe(() => {
         (logLevel >= 1) && console.log('speechRecognitionStop$');
 
         // 更新 UI 狀態
         microphoneButtonElement.innerHTML = svgMicOff;
-        microphoneButtonElement.title = `開啟語音辨識功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
+        microphoneButtonElement.title = `开启语音辨识功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
 
         if (Parts.length > 0) {
             textAreaElement.value = textAreaElement.value.replace(/…$/, '');
@@ -573,27 +573,27 @@
         speechRecognition.abort();
     });
 
-    // 3. 語音合成開始 speechSynthesisStart$
+    // 3. 语音合成開始 speechSynthesisStart$
     const speechSynthesisStart$ = new Subject();
     speechSynthesisStart$.subscribe(() => {
         (logLevel >= 1) && console.log('speechSynthesisStart$');
 
-        // 語音識別 speechRecognition 跟 語音合成 speechSynthesis 不能同時進行
+        // 语音識別 speechRecognition 跟 语音合成 speechSynthesis 不能同時進行
         speechRecognitionStop$.next();
 
         // 更新 UI 狀態
         speakerButtonElement.innerHTML = svgSpeakerOn;
-        speakerButtonElement.title = `關閉語音合成功能 (${isMac() ? 'command+option+m' : 'alt+m'})`;
+        speakerButtonElement.title = `关闭语音合成功能 (${isMac() ? 'command+option+m' : 'alt+m'})`;
     });
 
-    // 4. 語音合成停止 speechSynthesisStop$
+    // 4. 语音合成停止 speechSynthesisStop$
     const speechSynthesisStop$ = new Subject();
     speechSynthesisStop$.subscribe(() => {
         (logLevel >= 1) && console.log('speechSynthesisStop$');
 
         // 更新 UI 狀態
         speakerButtonElement.innerHTML = svgSpeakerOff;
-        speakerButtonElement.title = `開啟語音合成功能 (${isMac() ? 'command+option+m' : 'alt+m'})`;
+        speakerButtonElement.title = `开启语音合成功能 (${isMac() ? 'command+option+m' : 'alt+m'})`;
 
         checkAudio().subscribe({
             next: (audioStream) => {
@@ -609,7 +609,7 @@
         });
 
         if (speechSynthesis.speaking) {
-            (logLevel >= 2) && console.log('正在播放合成語音中，取消本次播放！');
+            (logLevel >= 2) && console.log('正在播放合成语音中，取消本次播放！');
             speechSynthesis.cancel();
         }
     });
@@ -629,7 +629,9 @@
                     '狂奔吧',
                     '跑起來',
                     // 簡體字
-                    '回车'
+                    '提交',
+                    '回车',
+                    '发送'
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
@@ -637,7 +639,7 @@
                 terms: [
                     'reload',
                     '重新整理',
-                    '重載頁面',
+                    '重载页面',
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
@@ -658,7 +660,8 @@
                     '刪除',
                     '刪除上一句',
                     // 簡體字
-                    '删除'
+                    '删除',
+                    '删除上一句'
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
@@ -702,10 +705,10 @@
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
-            換行: {
+            换行: {
                 terms: [
                     'newline',
-                    '換行',
+                    '换行',
                     '斷行'
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -720,66 +723,66 @@
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
-            切換至中文模式: {
+            切换至中文模式: {
                 terms: [
-                    '切換至中文模式',
-                    '切換到中文模式',
-                    '切換至中文',
-                    '切換到中文',
-                    '切換至中語模式',
-                    '切換到中語模式',
-                    '切換至中語',
-                    '切換到中語',
+                    '切换至中文模式',
+                    '切换到中文模式',
+                    '切换至中文',
+                    '切换到中文',
+                    '切换至中語模式',
+                    '切换到中語模式',
+                    '切换至中語',
+                    '切换到中語',
                     'switch to Chinese mode'
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
-            切換至英文模式: {
+            切换至英文模式: {
                 terms: [
-                    '切換至英文模式',
-                    '切換到英文模式',
-                    '切換至英文',
-                    '切換到英文',
-                    '切換至英語模式',
-                    '切換到英語模式',
-                    '切換至英語',
-                    '切換到英語',
+                    '切换至英文模式',
+                    '切换到英文模式',
+                    '切换至英文',
+                    '切换到英文',
+                    '切换至英語模式',
+                    '切换到英語模式',
+                    '切换至英語',
+                    '切换到英語',
                     'switch to English mode'
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
-            切換至日文模式: {
+            切换至日文模式: {
                 terms: [
-                    '切換至日文模式',
-                    '切換到日文模式',
-                    '切換至日文',
-                    '切換到日文',
-                    '切換至日語模式',
-                    '切換到日語模式',
-                    '切換至日語',
-                    '切換到日語',
+                    '切换至日文模式',
+                    '切换到日文模式',
+                    '切换至日文',
+                    '切换到日文',
+                    '切换至日語模式',
+                    '切换到日語模式',
+                    '切换至日語',
+                    '切换到日語',
                     'switch to Japanese mode'
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
-            切換至韓文模式: {
+            切换至韩文模式: {
                 terms: [
-                    '切換至韓文模式',
-                    '切換到韓文模式',
-                    '切換至韓文',
-                    '切換到韓文',
-                    '切換至韓語模式',
-                    '切換到韓語模式',
-                    '切換至韓語',
-                    '切換到韓語',
+                    '切换至韩文模式',
+                    '切换到韩文模式',
+                    '切换至韩文',
+                    '切换到韩文',
+                    '切换至韓語模式',
+                    '切换到韓語模式',
+                    '切换至韓語',
+                    '切换到韓語',
                     'switch to Korea mode'
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
-            關閉語音辨識: {
+            关闭语音辨识: {
                 terms: [
-                    '關閉語音辨識',
-                    '關閉語音'
+                    '关闭语音辨识',
+                    '关闭语音'
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
@@ -808,7 +811,7 @@
         return ''
     }
 
-    // #region 語音合成
+    // #region 语音合成
 
     /**
      * 取得要說的內容
@@ -843,7 +846,7 @@
                         lastParagraphElement = mutation.target.parentNode;
                     }
                     if (mutation.type === 'childList' && mutation.target.tagName === 'BUTTON' && mutation.target.type !== 'button' && mutation.addedNodes.length === 1 && mutation.addedNodes[0].nodeName === 'svg' && mutation.addedNodes[0].textContent === '') {
-                        (logLevel >= 2) && console.log('!!加入語音佇列!!', lastParagraphElement);
+                        (logLevel >= 2) && console.log('!!加入语音佇列!!', lastParagraphElement);
 
                         // 通常文字打完了，最後一句可能都還沒開始唸，所以要等一下才能視為結束。
                         setTimeout(() => {
@@ -876,7 +879,7 @@
     }
 
     /**
-     * 開始進行語音合成
+     * 開始進行语音合成
      *
      */
     const listenUtteranceTextAndSpeak = () => {
@@ -884,8 +887,8 @@
             switchMap(lastParagraphTextFromChatGPT => SpeakText(lastParagraphTextFromChatGPT)),
             retry(),
         ).subscribe({
-            error: err => logLevel >= 1 && console.error('監聽並進行語音合成錯誤', err),
-            complete: () => (logLevel >= 1) && console.log('監聽並進行語音合成結束')
+            error: err => logLevel >= 1 && console.error('監聽並進行语音合成錯誤', err),
+            complete: () => (logLevel >= 1) && console.log('監聽並進行语音合成結束')
         });
     }
 
@@ -899,7 +902,7 @@
         return new Observable(subscriber => {
             if (!isSpeechSynthesisEnabled()) { return; }
 
-            (logLevel >= 1) && console.log(`準備合成閱讀文章語音: ${text}`, currentVoice);
+            (logLevel >= 1) && console.log(`準備合成閱讀文章语音: ${text}`, currentVoice);
 
             let utterance = new SpeechSynthesisUtterance(text);
             utterance.voice = currentVoice;
@@ -964,7 +967,7 @@
                 (logLevel >= 2) && console.log('Get the selected text: ', selectedText);
             }),
             tap(() => {
-                speechSynthesis.cancel(); // 如果還有正在播放的語音，就先停止
+                speechSynthesis.cancel(); // 如果還有正在播放的语音，就先停止
             }),
             switchMap((selectedText) => timer(1000).pipe(switchMap(() => SpeakText(selectedText)))),
             catchError(err => of(err))
@@ -1025,11 +1028,11 @@
     }
 
     function initializeTextboxInputEvent() {
-        // 只要是在語音識別的狀態下，有人在 textarea 輸入文字，就要取消原本在 Parts 中的所有暫存輸入資料，以人工輸入為主
+        // 只要是在语音識別的狀態下，有人在 textarea 輸入文字，就要取消原本在 Parts 中的所有暫存輸入資料，以人工輸入為主
         textAreaElement.addEventListener('input', (ev) => {
             if (isSpeechRecognitionEnabled()) {
                 (logLevel >= 1) && console.log('initializeTextboxInputEvent', ev);
-                // 只要在語音識別的狀態下，有人在 textarea 輸入文字，就要停用語音識別，否則兩邊同時輸入很容易有 Bug
+                // 只要在语音識別的狀態下，有人在 textarea 輸入文字，就要停用语音識別，否則兩邊同時輸入很容易有 Bug
                 if (!!ev.inputType) {
                     speechRecognitionStop$.next();
                 }
@@ -1084,12 +1087,12 @@
         microphoneButtonElement.innerHTML = svgMicOff;
     }
 
-    // 偵測換頁必須 5 秒後才開始，因為第一次載入時可能會透過 ChatGPTAutoFill.user.js 加入預設表單內容
+    // 偵測换頁必須 5 秒後才開始，因為第一次載入時可能會透過 ChatGPTAutoFill.user.js 加入預設表單內容
     setTimeout(() => {
 
         setInterval(() => {
             if (document.querySelector('#btn-speaker') === null) {
-                (logLevel >= 1) && console.log('偵測到換頁事件');
+                (logLevel >= 1) && console.log('偵測到换頁事件');
 
                 reset();
 
@@ -1120,11 +1123,11 @@
                 addButtons();      // 新增兩個 Buttons
                 registerHotKeys(); // 註冊全域鍵盤熱鍵事件
 
-                // 語音合成
+                // 语音合成
                 listenUtteranceTextAndSpeak();
                 selectTextToSpeak();
 
-                // 語音辨識
+                // 语音辨识
                 initializeTextboxInputEvent();
 
             }, 300);
