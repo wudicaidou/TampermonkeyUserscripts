@@ -231,8 +231,8 @@
 
         // 可設定值清單 ▶ https://www.google.com/intl/en/chrome/demos/speech.html
         var options = [
-            { value: "cmn-Hant-TW", text: "中文 (台灣)" },
             { value: "cmn-Hans-CN", text: "普通话 (中国大陆)" },
+            { value: "cmn-Hant-TW", text: "中文 (台灣)" },
             { value: "en-US", text: "English (United States)" },
             { value: "en-GB", text: "English (United Kingdom)" },
             { value: "en-AU", text: "English (Australia)" },
@@ -463,7 +463,7 @@
 
                 case '切換至中文模式':
                     (logLevel >= 2) && console.log('切換至中文模式');
-                    microphoneButtonElement.changeLanguage('cmn-Hant-TW');
+                    microphoneButtonElement.changeLanguage('cmn-Hans-CN');
                     Parts[Parts.length - 1] = '';
                     break;
 
