@@ -91,7 +91,7 @@
 
     const logLevel = 0; // 0: None, 1: Information, 2: Debug
 
-    const defaultLang = 'cmn-Hant-CN'; // 可設定值清單 ▶ https://stackoverflow.com/a/68742566/910074
+    const defaultLang = 'cmn-Hans-CN'; // 可設定值清單 ▶ https://stackoverflow.com/a/68742566/910074
 
     let currentVoice = undefined;
     window.speechSynthesis.onvoiceschanged = function() {
