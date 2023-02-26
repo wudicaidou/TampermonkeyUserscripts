@@ -162,7 +162,7 @@
     microphoneButtonElement.type = 'button';
     microphoneButtonElement.classList = 'absolute p-1 rounded-md text-gray-500 bottom-1.5 right-1 md:bottom-2.5 md:right-2 hover:bg-gray-100 dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent';
     microphoneButtonElement.style.right = '2.5rem';
-    microphoneButtonElement.title = `开启语音辨识功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
+    microphoneButtonElement.title = `开启语音识别功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
     microphoneButtonElement.innerHTML = svgMicOff;
     microphoneButtonElement.addEventListener('click', () => {
         if (isSpeechRecognitionEnabled()) {
@@ -226,7 +226,7 @@
 
         const option1 = document.createElement('option');
         option1.value = '';
-        option1.text = '请选择语音辨识的惯用语言';
+        option1.text = '请选择语音识别的惯用语言';
         selectElement.add(option1);
 
         // 可設定值清單 ▶ https://www.google.com/intl/en/chrome/demos/speech.html
@@ -361,7 +361,7 @@
         return (speakerButtonElement.innerHTML === svgSpeakerOn);
     };
 
-    // 判斷是否要開始執行语音辨识
+    // 判斷是否要開始執行语音识别
     function isSpeechRecognitionEnabled() {
         // TODO: 這個寫法有點不太可靠，因為 Browser 會正規化 SVG 的 HTML 結構，有可能會長不一樣！
         return (microphoneButtonElement.innerHTML === svgMicOn);
@@ -376,21 +376,21 @@
     // const SpeechGrammarList = window.SpeechGrammarList || webkitSpeechGrammarList;
     // const SpeechRecognitionEvent = window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
 
-    // 建立语音辨识物件
+    // 建立语音识别物件
     const speechRecognition = new SpeechRecognition();
     speechRecognition.continuous = true;
     speechRecognition.interimResults = true;
     speechRecognition.lang = defaultLang; // 可設定值清單 ▶ https://stackoverflow.com/a/68742566/910074
 
     speechRecognition.onstart = (event) => {
-        (logLevel >= 1) && console.log('開始進行 SpeechRecognition 语音辨识');
+        (logLevel >= 1) && console.log('開始進行 SpeechRecognition 语音识别');
     };
     speechRecognition.onerror = (event) => {
-        (logLevel >= 1) && console.log('SpeechRecognition 语音辨识錯誤(error)或中斷(abort)!', event);
+        (logLevel >= 1) && console.log('SpeechRecognition 语音识别錯誤(error)或中斷(abort)!', event);
     }
     speechRecognition.onend = (event) => {
-        // 如果目前瀏覽器頁籤抓不到麥克風資源 (例如有兩個 Tab 都想要麥克風)，那麼就會一直不斷的停止语音辨识！
-        (logLevel >= 1) && console.log('停止 SpeechRecognition 语音辨识!', event);
+        // 如果目前瀏覽器頁籤抓不到麥克風資源 (例如有兩個 Tab 都想要麥克風)，那麼就會一直不斷的停止语音识别！
+        (logLevel >= 1) && console.log('停止 SpeechRecognition 语音识别!', event);
         speechRecognitionStop$.next();
     };
     speechRecognition.onresult = async (event) => {
@@ -486,8 +486,8 @@
                     Parts[Parts.length - 1] = '';
                     break;
 
-                case '关闭语音辨识':
-                    (logLevel >= 2) && console.log('关闭语音辨识');
+                case '关闭语音识别':
+                    (logLevel >= 2) && console.log('关闭语音识别');
                     speechRecognitionStop$.next();
                     break;
 
@@ -537,7 +537,7 @@
 
         // 更新 UI 狀態
         microphoneButtonElement.innerHTML = svgMicOn;
-        microphoneButtonElement.title = `关闭语音辨识功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
+        microphoneButtonElement.title = `关闭语音识别功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
 
         if (textAreaElement.value) {
             Parts = [textAreaElement.value, ''];
@@ -545,7 +545,7 @@
             Parts = [];
         }
 
-        // 啟動语音辨识
+        // 啟動语音识别
         speechRecognition.start();
         (logLevel >= 1) && console.log('speechRecognitionStart$ Started', Parts, textAreaElement.value);
 
@@ -558,7 +558,7 @@
 
         // 更新 UI 狀態
         microphoneButtonElement.innerHTML = svgMicOff;
-        microphoneButtonElement.title = `开启语音辨识功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
+        microphoneButtonElement.title = `开启语音识别功能 (${isMac() ? 'command+option+s' : 'alt+s'})`;
 
         if (Parts.length > 0) {
             textAreaElement.value = textAreaElement.value.replace(/…$/, '');
@@ -639,6 +639,7 @@
                 terms: [
                     'reload',
                     '重新整理',
+                    '重新加载',
                     '重载页面',
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -669,6 +670,7 @@
                 terms: [
                     'paste',
                     '貼上',
+                    '粘贴',
                     '貼上剪貼簿'
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -686,6 +688,7 @@
                 terms: [
                     'comma',
                     '逗號',
+                    '逗号',
                     '逗點'
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -694,6 +697,7 @@
                 terms: [
                     'period',
                     '句號',
+                    '句号',
                     '句點'
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -701,6 +705,7 @@
             問號: {
                 terms: [
                     'questionmark',
+                    '问号',
                     '問號'
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -729,10 +734,10 @@
                     '切换到中文模式',
                     '切换至中文',
                     '切换到中文',
-                    '切换至中語模式',
-                    '切换到中語模式',
-                    '切换至中語',
-                    '切换到中語',
+                    '切换至中文模式',
+                    '切换到中文模式',
+                    '切换至中文',
+                    '切换到中文',
                     'switch to Chinese mode'
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -779,9 +784,9 @@
                 ],
                 match: 'exact' // prefix, exact, postfix
             },
-            关闭语音辨识: {
+            关闭语音识别: {
                 terms: [
-                    '关闭语音辨识',
+                    '关闭语音识别',
                     '关闭语音'
                 ],
                 match: 'exact' // prefix, exact, postfix
@@ -1127,7 +1132,7 @@
                 listenUtteranceTextAndSpeak();
                 selectTextToSpeak();
 
-                // 语音辨识
+                // 语音识别
                 initializeTextboxInputEvent();
 
             }, 300);
